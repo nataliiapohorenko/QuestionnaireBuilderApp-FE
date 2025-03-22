@@ -1,5 +1,9 @@
 # Questionnaire Builder App
 Note: Since the project is deployed on Render, which is a free hosting service, the website may take up to a minute to load when accessed for the first time or after a period of inactivity.
+  FE: 
+    https://questionnairebuilderapp-fe.onrender.com
+  BE:
+    https://questionnairebuilderapp-be.onrender.com
 
 ## Features
 
