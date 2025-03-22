@@ -12,6 +12,7 @@ const QuestionnaireList = () => {
   const [loadMoreMode, setLoadMoreMode] = useState(false);
   const quizzesPerPage = 6;
   const loadMoreRef = useRef(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const { getPaginatedQuestionnaires, deleteQuestionnaire } = useQuestionnaireService();
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const QuestionnaireList = () => {
       } else {
         setQuestionnaires((prev) => [...prev, ...res.questionnaires]);
       }
+      setIsLoaded(true);
       setTotalPages(Math.ceil(res.total / quizzesPerPage));
     } catch (err) {
       console.log(err);
@@ -106,6 +108,8 @@ const QuestionnaireList = () => {
       if (target) observer.unobserve(target);
     };
   }, [handleObserver, loadMoreMode]);
+
+  if(!isLoaded) return (<p className="m-auto text-xl">Loading...</p>)
 
   return (
     <div className="p-4">
