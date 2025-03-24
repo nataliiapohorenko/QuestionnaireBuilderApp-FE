@@ -1,5 +1,5 @@
 const config = {
-    apiUrl: 'http://questionnairebuilderapp-be.onrender.com'
+    apiUrl: 'https://questionnairebuilderapp-be.onrender.com'
 };
 
 export default config;
