@@ -6,42 +6,47 @@ import { useNavigate } from "react-router-dom";
 const QuestionnaireList = () => {
   const [questionnaires, setQuestionnaires] = useState([]);
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState("createdAt");
-  const [totalPages, setTotalPages] = useState(1);
-  const [loadMoreMode, setLoadMoreMode] = useState(false);
-  const quizzesPerPage = 6;
-  const loadMoreRef = useRef(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  const quizzesPerPage = 6;
+
+  const loadMoreRef = useRef(null);
 
   const { getPaginatedQuestionnaires, deleteQuestionnaire } = useQuestionnaireService();
   const navigate = useNavigate();
 
-  const loadPage = async (page, replace = false) => {
+  const loadPage = async (pageNum) => {
+    if (isLoading || !hasMore) return;
+
+    setIsLoading(true);
     try {
-      const res = await getPaginatedQuestionnaires(page, quizzesPerPage, sortBy);
-      if (replace) {
-        setQuestionnaires(res.questionnaires);
+      const res = await getPaginatedQuestionnaires(pageNum, quizzesPerPage, sortBy);
+      setIsLoaded(true);
+      if (res.questionnaires.length === 0) {
+        setHasMore(false);
       } else {
         setQuestionnaires((prev) => [...prev, ...res.questionnaires]);
+        setPage((prev) => prev + 1);
+        const totalPages = Math.ceil(res.total / quizzesPerPage);
+        if (pageNum >= totalPages) setHasMore(false);
       }
-      setIsLoaded(true);
-      setTotalPages(Math.ceil(res.total / quizzesPerPage));
     } catch (err) {
       console.log(err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    setCurrentPage(1);
-    setLoadMoreMode(false);
-    loadPage(1, true);
+    setQuestionnaires([]);
+    setPage(1);
+    setHasMore(true);
+    loadPage(1);
   }, [sortBy]);
-
-  useEffect(() => {
-    if (!loadMoreMode || currentPage === 1) return;
-    loadPage(currentPage);
-  }, [currentPage, loadMoreMode]);
 
   const handleSortChange = (e) => {
     setSortBy(e.target.value);
@@ -73,41 +78,21 @@ const QuestionnaireList = () => {
     navigate(`/stats-quiz/${id}`);
   };
 
-  const handleLoadMore = () => {
-    setLoadMoreMode(true);
-  };
-
-  const handleNext = () => {
-    setLoadMoreMode(false);
-    const nextPage = currentPage + 1;
-    setCurrentPage(nextPage);
-    loadPage(nextPage, true);
-  };
-
-  const handlePrev = () => {
-    if (currentPage > 1) {
-      const prevPage = currentPage - 1;
-      setCurrentPage(prevPage);
-      loadPage(prevPage, true);
-    }
-  };
-
   const handleObserver = useCallback((entries) => {
     const [entry] = entries;
-    if (entry.isIntersecting && loadMoreMode && currentPage < totalPages) {
-      setCurrentPage((prev) => prev + 1);
+    if (entry.isIntersecting && hasMore && !isLoading) {
+      loadPage(page);
     }
-  }, [loadMoreMode, currentPage, totalPages]);
+  }, [hasMore, isLoading, page]);
 
   useEffect(() => {
-    if (!loadMoreMode) return;
     const observer = new IntersectionObserver(handleObserver, { threshold: 1.0 });
     const target = loadMoreRef.current;
     if (target) observer.observe(target);
     return () => {
       if (target) observer.unobserve(target);
     };
-  }, [handleObserver, loadMoreMode]);
+  }, [handleObserver]);
 
   if(!isLoaded) return (<p className="m-auto text-xl">Loading...</p>)
 
@@ -153,47 +138,12 @@ const QuestionnaireList = () => {
         ))}
       </div>
 
-      {currentPage === 1 && currentPage < totalPages && (
-        <div className="flex justify-center mt-12">
-          <button
-            onClick={handleLoadMore}
-            className="px-4 py-2 bg-orange-200 hover:bg-orange-400 rounded font-semibold text-sm"
-          >
-            Load More
-          </button>
-        </div>
-      )}
-
-      {loadMoreMode && currentPage < totalPages && (
-        <div
-          ref={loadMoreRef}
-          className="h-10 mt-6 flex justify-center items-center text-gray-400"
-        >
-          Loading...
-        </div>
-      )}
-
-      {!loadMoreMode && (
-        <div className="flex justify-center mt-6 space-x-2">
-          <button
-            onClick={handlePrev}
-            disabled={currentPage === 1}
-            className="px-3 py-1 border rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <span className="px-4 py-1 border rounded bg-gray-100">
-            {currentPage} / {totalPages}
-          </span>
-          <button
-            onClick={handleNext}
-            disabled={currentPage === totalPages}
-            className="px-3 py-1 border rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      )}
+      <div ref={loadMoreRef} className="h-12 mt-6 flex justify-center items-center">
+        {isLoading && <span className="animate-pulse text-gray-500">Loading more...</span>}
+        {!hasMore && questionnaires.length > 0 && (
+          <span className="text-gray-400 text-sm">No more questionnaires</span>
+        )}
+      </div>
     </div>
   );
 };

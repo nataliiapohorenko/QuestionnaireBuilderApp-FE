@@ -10,9 +10,9 @@ const StatisticsPage = () => {
   const { id } = useParams();
   const { getStatistics } = useQuestionnaireService();
   const [stats, setStats] = useState(null);
+  const [view, setView] = useState("day");
 
   useEffect(() => {
-    console.log(id);
     getStatistics(id).then(setStats).catch(console.error);
   }, [id]);
 
@@ -24,7 +24,11 @@ const StatisticsPage = () => {
     </>
   );
 
-  const completionsData = Object.entries(stats.completions).map(([date, count]) => ({
+  const completionsData = Object.entries(
+    view === "week" ? stats.completionsByWeek :
+    view === "month" ? stats.completionsByMonth :
+    stats.completions
+  ).map(([date, count]) => ({
     date,
     count,
   }));
@@ -35,7 +39,11 @@ const StatisticsPage = () => {
       <h2 className="text-2xl font-bold mt-10 mb-4">Statistics</h2>
 
       <p className="mb-6 text-lg">🕒 Average completion time: <strong>{stats.avgTime} seconds</strong></p>
-
+      <div className="flex gap-2 mb-4">
+        <button onClick={() => setView("day")} className="px-3 py-1 rounded bg-green-300 hover:bg-green-400 cursor-pointer">Day</button>
+        <button onClick={() => setView("week")} className="px-3 py-1 rounded bg-green-300 hover:bg-green-400 cursor-pointer">Week</button>
+        <button onClick={() => setView("month")} className="px-3 py-1 rounded bg-green-300 hover:bg-green-400 cursor-pointer">Month</button>
+      </div>
       <div className="mb-10">
         <h3 className="text-lg font-semibold mb-2">📈 Completions by date</h3>
         <ResponsiveContainer width="100%" height={300}>

@@ -83,6 +83,7 @@ const QuestionnaireBuilder = () => {
       name: quizName,
       description: questionDescription,
       questions: questions.map((q) => ({
+        _id: q.id,
         text: q.text,
         type: q.type,
         options: q.type === "text" ? [] : q.type === "image" ? [] : q.options.map((opt) => opt.text),

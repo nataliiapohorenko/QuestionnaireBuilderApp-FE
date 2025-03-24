@@ -119,6 +119,7 @@ const QuizPage = () => {
                 value={answers[q._id] || ""}
                 onChange={(e) => handleChange(q._id, e.target.value, false)}
                 className="p-2 border rounded w-full bg-white"
+                disabled={submitted}
               />
             )}
 
@@ -132,6 +133,7 @@ const QuizPage = () => {
                     checked={answers[q._id] === option}
                     onChange={() => handleChange(q._id, option, false)}
                     className="mr-2"
+                    disabled={submitted}
                   />
                   {option}
                 </label>
@@ -147,6 +149,7 @@ const QuizPage = () => {
                     checked={answers[q._id]?.includes(option)}
                     onChange={() => handleChange(q._id, option, true)}
                     className="mr-2"
+                    disabled={submitted}
                   />
                   {option}
                 </label>
@@ -160,6 +163,7 @@ const QuizPage = () => {
                   accept="image/*"
                   onChange={(e) => handleChange(q._id, e.target.files[0], false)}
                   className="p-2 border rounded w-full bg-white"
+                  disabled={submitted}
                 />
                 {answers[q._id] && (
                   <div className="mt-2">
